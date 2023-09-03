@@ -1,8 +1,8 @@
 package com.weather.api.service;
 
-import com.weather.api.ApiApplication;
 import com.weather.api.domain.DateWeather;
 import com.weather.api.domain.Diary;
+import com.weather.api.error.DiaryException;
 import com.weather.api.repository.DateWeatherRepository;
 import com.weather.api.repository.DiaryRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Service @Transactional
+import static com.weather.api.error.type.ErrorCode.DIARY_NOT_FOUND;
+
+@Service
 @RequiredArgsConstructor
 public class DiaryService {
 
@@ -34,11 +36,13 @@ public class DiaryService {
   private String apiKey;
 
   private static final Logger logger =
-      LoggerFactory.getLogger(ApiApplication.class);
+      LoggerFactory.getLogger(DiaryService.class);
   private final DiaryRepository diaryRepository;
   private final DateWeatherRepository dateWeatherRepository;
+
   @Scheduled(cron = "0 0 1 * * *")
   public void saveWeatherDate() {
+    logger.info("save diary");
     dateWeatherRepository.save(getWeatherFromApi());
   }
 
@@ -47,15 +51,20 @@ public class DiaryService {
     logger.info("find diary");
     return diaryRepository.findAllByDate(date);
   }
+
   @Transactional
   public void deleteDiary(LocalDate date) {
+    logger.info("delete diary");
     diaryRepository.deleteAllByDate(date);
   }
 
   @Transactional(readOnly = true)
   public List<Diary> readDiaries(LocalDate startDate, LocalDate endDate) {
+    logger.info("find diary list");
     return diaryRepository.findAllByDateBetween(startDate, endDate);
   }
+
+  @Transactional
   public void createDiary(LocalDate date, String text) {
     logger.info("create diary");
     DateWeather dateWeather = getDateWeather(date);
@@ -65,11 +74,10 @@ public class DiaryService {
     nowDiary.setText(text);
     diaryRepository.save(nowDiary);
   }
+
   public DateWeather getWeatherFromApi() {
-    // open weather map에서 날씨 데이터 가져오기
     String weatherData = getWeatherString();
 
-    // 받아온 날씨 json 파싱하기
     Map<String, Object> parsedWeather = parseWeather(weatherData);
     DateWeather dateWeather = new DateWeather();
     dateWeather.setDate(LocalDate.now());
@@ -79,18 +87,22 @@ public class DiaryService {
     return dateWeather;
   }
 
+  @Transactional(readOnly = true)
   public DateWeather getDateWeather(LocalDate date) {
+    logger.info("get weather data");
     List<DateWeather> dateWeathers = dateWeatherRepository.findAllByDate(date);
-    if (dateWeathers.size() == 0) {
-      // 새로 api에서 날씨 정보를 가져와야한다.
+    if (dateWeathers.isEmpty()) {
       return getWeatherFromApi();
     } else {
       return dateWeathers.get(0);
     }
   }
 
+  @Transactional
   public void updateDiary(LocalDate date, String text) {
-    Diary nowDiary = diaryRepository.getFirstByDate(date);
+    logger.info("update diary");
+    Diary nowDiary = diaryRepository.getFirstByDate(date)
+        .orElseThrow(() -> new DiaryException(DIARY_NOT_FOUND));
     nowDiary.setText(text);
     diaryRepository.save(nowDiary);
   }

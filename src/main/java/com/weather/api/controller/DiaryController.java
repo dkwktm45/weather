@@ -5,6 +5,8 @@ import com.weather.api.service.DiaryService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +19,15 @@ import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE;
 @RequiredArgsConstructor
 public class DiaryController {
   private final DiaryService diaryService;
+  private static final Logger logger =
+      LoggerFactory.getLogger(DiaryController.class);
   @PostMapping("/create/diary")
   @ApiOperation(value = "일기 텍스트와 날씨를 이용해서 DB에 일기 저장", notes = "이것은 노트")
   public void createDiary(@RequestParam @DateTimeFormat(iso =
       DATE)
                    LocalDate date,
                    @RequestBody String text) {
+    logger.info("/create/diary 요청 데이터 : {} , {}",date ,text);
     diaryService.createDiary(date, text);
   }
 
@@ -30,6 +35,7 @@ public class DiaryController {
   @ApiOperation("선택한 날짜에 대한 모든 일기를 가져옵니다.")
   public List<Diary> readDiary(@RequestParam @DateTimeFormat(iso =
       DATE) LocalDate date){
+    logger.info("/read/diary 요청 데이터 : {} ",date );
     return diaryService.readDiary(date);
   }
 
@@ -39,20 +45,23 @@ public class DiaryController {
       DATE) @ApiParam(value = "조회할 기간의 첫번째날", example = "2022-01-20") LocalDate startDate,
                                  @RequestParam @DateTimeFormat(iso =
       DATE) @ApiParam(value = "조회할 기간의 마지막날", example = "2022-01-20") LocalDate endDate) {
+    logger.info("/read/diaries 요청 데이터 : {} , {}",startDate , endDate);
     return diaryService.readDiaries(startDate, endDate);
   }
 
   @PutMapping("/update/diary")
   @ApiOperation("선택한 날짜에 대한 일기의 텍스트를 수정합니다")
-  void updateDiary(@RequestParam @DateTimeFormat(iso =
-      DATE) LocalDate date,
+  void updateDiary(
+      @RequestParam @DateTimeFormat(iso = DATE) LocalDate date,
                    @RequestBody String text) {
+    logger.info("/update/diary 요청 데이터 : {} , {}",date , text);
     diaryService.updateDiary(date, text);
   }
 
   @DeleteMapping("/delete/diary")
   @ApiOperation("선택한 날짜에 대한 일기를 삭제합니다.")
   void deleteDiary(@RequestParam @DateTimeFormat(iso = DATE) LocalDate date) {
+    logger.info("/delete/diary 요청 데이터 : {}",date);
     diaryService.deleteDiary(date);
   }
 }

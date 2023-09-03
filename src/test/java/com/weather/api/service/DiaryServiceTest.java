@@ -17,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -122,7 +123,7 @@ class DiaryServiceTest {
     //given
     Diary diary = Diary.builder().text("test1").build();
     LocalDate date = LocalDate.of(2023, 1, 20);
-    given(diaryRepository.getFirstByDate(date)).willReturn(diary);
+    given(diaryRepository.getFirstByDate(date)).willReturn(Optional.of(diary));
     given(diaryRepository.save(diary)).willReturn(diary);
 
     //when
