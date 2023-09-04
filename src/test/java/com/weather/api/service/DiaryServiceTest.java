@@ -38,10 +38,6 @@ class DiaryServiceTest {
   private DiaryService diaryService;
 
   @Test
-  void saveWeatherDate() {
-
-  }
-  @Test
   void createDiary_weather_exist() {
     DateWeather dateWeather = DateWeather.builder()
         .date(LocalDate.now())
