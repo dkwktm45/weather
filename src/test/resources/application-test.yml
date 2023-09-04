@@ -1,4 +1,5 @@
 spring:
+  config.activate.on-profile: test
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://localhost:3306/testdb1?severTimezone=UTC&characterEncoding=UTF-8
@@ -13,6 +14,7 @@ spring:
     pathmatch:
       matching-strategy: ant_path_matcher
 schedules:
-  cron: 0 0 1 * * *
+  cron: "* * * * * *"
+
 openweathermap:
   key: ad6b85c0afec2ad103e41ff812749453

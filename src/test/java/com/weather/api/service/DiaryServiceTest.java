@@ -4,6 +4,7 @@ import com.weather.api.domain.DateWeather;
 import com.weather.api.domain.Diary;
 import com.weather.api.repository.DateWeatherRepository;
 import com.weather.api.repository.DiaryRepository;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -13,17 +14,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class DiaryServiceTest {
@@ -146,7 +148,7 @@ class DiaryServiceTest {
     verify(diaryRepository, times(1)).deleteAllByDate(date);
   }
 }
-@SpringBootTest
+@SpringBootTest @ActiveProfiles("test")
 class DiaryService_Integrantion{
   @Autowired
   private DiaryService diaryService;
@@ -166,6 +168,20 @@ class DiaryService_Integrantion{
 
     //then
     verify(diaryRepository, times(1)).save(captor.capture());
+  }
+
+  @Test
+  void create_weather_schedule() {
+    ArgumentCaptor<DateWeather> captor = ArgumentCaptor.forClass(DateWeather.class);
+
+    Awaitility.await()
+        .atMost(4, TimeUnit.SECONDS)
+        .untilAsserted(()-> {
+          //when
+          diaryService.saveWeatherDate();
+          //then
+          verify(dateWeatherRepository, times(4)).save(captor.capture());
+        });
   }
   @Test
   void saveWeatherDate(){

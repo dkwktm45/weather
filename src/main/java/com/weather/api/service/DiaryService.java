@@ -40,7 +40,7 @@ public class DiaryService {
   private final DiaryRepository diaryRepository;
   private final DateWeatherRepository dateWeatherRepository;
 
-  @Scheduled(cron = "0 0 1 * * *")
+  @Scheduled(cron = "${schedules.cron}")
   public void saveWeatherDate() {
     logger.info("save diary");
     dateWeatherRepository.save(getWeatherFromApi());
